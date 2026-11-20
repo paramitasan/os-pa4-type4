@@ -1,0 +1,13 @@
+# w4-many.txt -- many small files. Metadata overhead per file is what this
+# workload measures: one index block for a three block file is a 33 percent
+# tax, and for contiguous allocation it is zero.
+create F1 3
+create F2 3
+create F3 3
+create F4 3
+create F5 3
+create F6 3
+create F7 3
+create F8 3
+create F9 3
+create F10 3

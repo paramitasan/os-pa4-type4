@@ -1,0 +1,8 @@
+# w3-big.txt -- files long enough to need more than one index block.
+#
+# With 64 byte blocks and 4 byte pointers, one block holds 16 pointers, so a
+# 16 block file fits in a single index block and a 20 block file does not.
+# Topics 3 to 6 differ sharply here; topic 3 cannot address these at all.
+create BIG1 20
+create BIG2 20
+create SMALL 4

@@ -1,0 +1,13 @@
+# ex2-exercise.txt -- the exercise on W08 slides 20 to 22.
+#
+# 200 cylinders, the arm is at 80, and the previous request was at 95, so the
+# head is already moving DOWN toward cylinder 0.
+#
+# Published answers, all with the head moving downward first:
+#   FCFS 810   SSTF 219   SCAN 255   LOOK 219   C-SCAN 368   C-LOOK 284
+# The slides also give C-SCAN as 169 and C-LOOK as 127 if the wrap-around
+# seek is not counted.
+cylinders 200
+head 80
+previous 95
+requests 145 32 110 18 175 64 150 42

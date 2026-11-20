@@ -1,0 +1,13 @@
+# w5-edge.txt -- the boundaries.
+#
+# One block files, then a file of exactly 16 blocks, which is exactly as many
+# pointers as fit in one 64 byte block, then one of 17 which needs a second
+# index block. If your method handles 16 and 17 identically, or crashes on
+# 17, this is the workload that shows it.
+create X 1
+create Y 1
+create Z 1
+create EXACT16 16
+create OVER17 17
+delete Y
+create TINY 2

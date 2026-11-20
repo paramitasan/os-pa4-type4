@@ -1,0 +1,6 @@
+# w1-basic.txt -- three files, no deletions, nothing surprising.
+# The disk stays unfragmented, so contiguous allocation is at its best here.
+# Use this one to get your method working before you try the others.
+create A 8
+create B 5
+create C 12

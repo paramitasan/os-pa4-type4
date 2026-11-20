@@ -1,0 +1,9 @@
+# ex1-lecture.txt -- the request queue used throughout the W08 lecture
+# (slides 14 to 17). The head starts at 53 and no previous request is given,
+# so the direction is ambiguous. That ambiguity is deliberate: slide 16 runs
+# SCAN downward and gets 236, while slide 17 runs C-SCAN upward and gets 382.
+#
+# Published answers:  FCFS 640   SSTF 236   SCAN (down) 236   C-SCAN (up) 382
+cylinders 200
+head 53
+requests 98 183 37 122 14 124 65 67

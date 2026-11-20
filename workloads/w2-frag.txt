@@ -1,0 +1,18 @@
+# w2-frag.txt -- the external fragmentation story, and the headline result
+# for most topics.
+#
+# Five equal files fill most of the disk, then two are deleted from the
+# middle. The free space is now in three separate runs. A method that needs
+# CONSECUTIVE blocks can only use the largest run; a method that can scatter
+# its blocks can use all of the free space.
+#
+# On the default 64 block disk, contiguous allocation cannot place G at all.
+create A 10
+create B 10
+create C 10
+create D 10
+create E 10
+delete B
+delete D
+create F 12
+create G 12
