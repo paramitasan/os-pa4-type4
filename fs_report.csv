@@ -1,0 +1,6 @@
+workload,method,file,data_blocks,meta_blocks,acc_first,acc_middle,acc_last,acc_sequential,acc_random
+workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,X,1,1,2,2,2,2,2
+workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,TINY,2,1,2,2,2,4,4
+workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,Z,1,1,2,2,2,2,2
+workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,EXACT16,16,2,2,2,3,33,34
+workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,OVER17,17,2,2,2,3,36,35
