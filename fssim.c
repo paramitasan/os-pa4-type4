@@ -23,7 +23,7 @@
 #include "fslib.h"
 
 /* Put your method's name here. It appears in every heading. */
-const char *METHOD_NAME = "Contiguous allocation (the given worked example)";
+const char *METHOD_NAME = "Indexed Allocation with Linked Index Blocks";
 
 /* ===================================================================== */
 /*  THE WORKED EXAMPLE: contiguous allocation                             */
@@ -80,8 +80,16 @@ static int contig_map(Disk *d, const File *f, int logical)
  */
 int fs_allocate(Disk *d, File *f, int nblocks)
 {
-    /* TODO: replace this with your own method. */
-    return contig_allocate(d, f, nblocks);
+    int per = d->block_size / d->ptr_size - 1;
+    int index_count = (nblocks + per - 1) / per;    
+    if (index_count < 1)
+        index_count = 1;
+
+    if (alloc_meta(d, f, index_count, f->index_chain) != 0)
+        return -1;
+    
+    f->nindex = index_count;
+    return alloc_data(d, f, nblocks);
 }
 
 /*
@@ -96,8 +104,13 @@ int fs_allocate(Disk *d, File *f, int nblocks)
  */
 int fs_map(Disk *d, const File *f, int logical)
 {
-    /* TODO: replace this with your own method. */
-    return contig_map(d, f, logical);
+    int per = d->block_size / d->ptr_size - 1;
+    int which_index = logical / per;
+
+    for (int i = 0; i <= which_index; i++)
+        disk_read(d, f->index_chain[i]);
+
+    return disk_read(d, f->data[logical]);
 }
 
 /*
@@ -123,9 +136,53 @@ long fs_max_file_blocks(const Disk *d)
  * FOR EVERY TOPIC. Add your topic's own extra output where the TODO is,
  * before them.
  */
+
+#define LINE 72
+static void rule(char c)
+{
+    for (int i = 0; i < LINE; i++) putchar(c);
+    putchar('\n');
+}
+
 void print_topic_extra(Disk *d)
 {
-    /* TODO: your topic's own extra output goes here. */
+    int per = d->block_size / d->ptr_size - 1;
+
+    rule('=');
+    puts("A STAIRCASE, NOT A FLAT COST");
+    rule('=');
+
+    printf("Each index block holds %d data pointers plus one link, so blocks\n", per);
+    printf("0..%d cost 2 accesses, %d..%d cost 3, and so on: one more for\n",
+           per - 1, per, 2 * per - 1);
+    printf("every %d logical blocks.\n", per);
+    rule('-');
+    printf("%-12s %6s %6s  %s\n",
+           "file", "blocks", "index", "accesses by logical block");
+    rule('-');
+
+    for (int i = 0; i < MAX_FILES; i++) {
+        const File *f = &d->file[i];
+        if (!f->in_use)
+            continue;
+
+        printf("%-12s %6d %6d ", f->name, f->nblocks, f->nindex);
+
+        for (int logical = 0; logical < f->nblocks; logical++) {
+            if (logical > 0 && logical % per == 0)
+                printf(" |");
+
+            printf(" %d", accesses_for(d, f, logical));
+        }
+        putchar('\n');
+    }
+
+    rule('-');
+    puts("The '|' marks where one index block ends and the next begins,");
+    puts("which is exactly where the cost steps up. Topic 3 is flat at 2");
+    puts("but cannot address past 16 blocks; topic 5 is flat at 3 and can");
+    puts("address far more. This method trades a growing cost for an");
+    puts("unbounded size.\n");
 
     print_max_file_size(d);
     print_fragmentation(d);
