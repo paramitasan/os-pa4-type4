@@ -1,0 +1,1141 @@
+PART 1
+
+~/os-pa4-type4$ ./iolab
+========================================================================
+  iolab: real I/O and real file metadata, measured
+========================================================================
+
+  Calibrating against this file system
+  ----------------------------------------------------------------------------
+    cost of one write() system call   8.030 us
+    payload chosen                    131072 bytes (128 KiB)
+
+  Writing 131072 bytes (128 KiB) four different ways
+  ----------------------------------------------------------------------------
+    method                                 elapsed  write() calls  
+  ----------------------------------------------------------------------------
+    stdio fputc, default buffer            6.94 ms      see note  ~16, hidden inside stdio (BUFSIZ=8192)
+    stdio fputc, 64 KiB buffer             5.78 ms      see note  ~2, hidden inside stdio (64 KiB buffer)
+    write() one byte at a time           843.24 ms        131072  one per byte
+    write() in 64 KiB blocks               1.05 ms             2  one per 64 KiB
+  ----------------------------------------------------------------------------
+    The bytes written are identical in all four cases. Only the
+    number of trips into the kernel changed. That is what the
+    kernel I/O subsystem's buffering is for.
+    Check the real counts yourself:  strace -c -e trace=write ./iolab
+
+  File metadata: what the directory entry and inode hold
+  ----------------------------------------------------------------------------
+    the file we wrote      iolab-out.dat   
+        inode number        1441947
+        hard links          1
+        size (st_size)      131072 bytes
+        allocated           256 blocks of 512 B = 131072 bytes
+        block size hint     4096 bytes
+
+    A SPARSE FILE: seek to 8 MiB - 1, write a single byte
+
+    sparse file            iolab-sparse.dat
+        inode number        1442072
+        hard links          1
+        size (st_size)      8388608 bytes
+        allocated           8 blocks of 512 B = 4096 bytes
+        block size hint     4096 bytes
+
+        ^ it reports 8 MiB of size while occupying almost no
+          blocks. The gap is a HOLE: logical blocks with no
+          physical block behind them. Reading a hole returns
+          zeroes without any disk access at all.
+
+    HARD LINK against SYMBOLIC LINK
+
+    original               iolab-out.dat   
+        inode number        1441947
+        hard links          2
+        size (st_size)      131072 bytes
+        allocated           256 blocks of 512 B = 131072 bytes
+        block size hint     4096 bytes
+
+    hard link              iolab-hard.lnk  
+        inode number        1441947
+        hard links          2
+        size (st_size)      131072 bytes
+        allocated           256 blocks of 512 B = 131072 bytes
+        block size hint     4096 bytes
+
+    symbolic link          iolab-sym.lnk   
+        inode number        1442073
+        hard links          1
+        size (st_size)      13 bytes
+        allocated           0 blocks of 512 B = 0 bytes
+        block size hint     4096 bytes
+        symlink target      iolab-out.dat
+
+        ^ the hard link has the SAME inode number as the original
+          and the link count of both went up to 2: one file, two
+          names. The symbolic link has its OWN inode, a size of
+          just the length of the path it holds, and it would
+          dangle if the original were deleted.
+
+========================================================================
+  Part 3 simulates the mapping from logical block to physical
+  block. The sparse file above is that mapping in the real
+  kernel, and the reason a file is not just a run of bytes.
+========================================================================
+
+cd /mnt/c/iolab-test
+~/os-pa4-type4/iolab
+========================================================================
+  iolab: real I/O and real file metadata, measured
+========================================================================
+
+  Calibrating against this file system
+  ----------------------------------------------------------------------------
+    cost of one write() system call   1.529 us
+    payload chosen                    262144 bytes (256 KiB)
+
+  Writing 262144 bytes (256 KiB) four different ways
+  ----------------------------------------------------------------------------
+    method                                 elapsed  write() calls  
+  ----------------------------------------------------------------------------
+    stdio fputc, default buffer            4.12 ms      see note  ~32, hidden inside stdio (BUFSIZ=8192)
+    stdio fputc, 64 KiB buffer             5.15 ms      see note  ~4, hidden inside stdio (64 KiB buffer)
+    write() one byte at a time           420.93 ms        262144  one per byte
+    write() in 64 KiB blocks               0.47 ms             4  one per 64 KiB
+  ----------------------------------------------------------------------------
+    The bytes written are identical in all four cases. Only the
+    number of trips into the kernel changed. That is what the
+    kernel I/O subsystem's buffering is for.
+    Check the real counts yourself:  strace -c -e trace=write ./iolab
+
+  File metadata: what the directory entry and inode hold
+  ----------------------------------------------------------------------------
+    the file we wrote      iolab-out.dat   
+        inode number        1179652
+        hard links          1
+        size (st_size)      262144 bytes
+        allocated           512 blocks of 512 B = 262144 bytes
+        block size hint     4096 bytes
+
+    A SPARSE FILE: seek to 8 MiB - 1, write a single byte
+
+    sparse file            iolab-sparse.dat
+        inode number        1179653
+        hard links          1
+        size (st_size)      8388608 bytes
+        allocated           8 blocks of 512 B = 4096 bytes
+        block size hint     4096 bytes
+
+        ^ it reports 8 MiB of size while occupying almost no
+          blocks. The gap is a HOLE: logical blocks with no
+          physical block behind them. Reading a hole returns
+          zeroes without any disk access at all.
+
+    HARD LINK against SYMBOLIC LINK
+
+    original               iolab-out.dat   
+        inode number        1179652
+        hard links          2
+        size (st_size)      262144 bytes
+        allocated           512 blocks of 512 B = 262144 bytes
+        block size hint     4096 bytes
+
+    hard link              iolab-hard.lnk  
+        inode number        1179652
+        hard links          2
+        size (st_size)      262144 bytes
+        allocated           512 blocks of 512 B = 262144 bytes
+        block size hint     4096 bytes
+
+    symbolic link          iolab-sym.lnk   
+        inode number        1179654
+        hard links          1
+        size (st_size)      13 bytes
+        allocated           0 blocks of 512 B = 0 bytes
+        block size hint     4096 bytes
+        symlink target      iolab-out.dat
+
+        ^ the hard link has the SAME inode number as the original
+          and the link count of both went up to 2: one file, two
+          names. The symbolic link has its OWN inode, a size of
+          just the length of the path it holds, and it would
+          dangle if the original were deleted.
+
+========================================================================
+  Part 3 simulates the mapping from logical block to physical
+  block. The sparse file above is that mapping in the real
+  kernel, and the reason a file is not just a run of bytes.
+========================================================================
+
+~/os-pa4-type4$ ./iolab
+========================================================================
+  iolab: real I/O and real file metadata, measured
+========================================================================
+
+  Calibrating against this file system
+  ----------------------------------------------------------------------------
+    cost of one write() system call   315.010 us
+    payload chosen                    4096 bytes (4 KiB)
+
+    NOTE: that is very slow for a single system call. You are
+    almost certainly running on a Windows drive mounted into
+    WSL (a /mnt/c path), where every system call crosses
+    between Linux and Windows. On a native Linux file system
+    the same call costs well under a microsecond.
+    The comparison below is still valid, but for figures that
+    reflect the kernel rather than the mount, copy this kit to
+    a native Linux path and run it there. Report both if you
+    can: the gap is itself the lesson.
+
+  Writing 4096 bytes (4 KiB) four different ways
+  ----------------------------------------------------------------------------
+    method                                 elapsed  write() calls  
+  ----------------------------------------------------------------------------
+    stdio fputc, default buffer            3.17 ms      see note  ~1, hidden inside stdio (BUFSIZ=8192)
+    stdio fputc, 64 KiB buffer             0.31 ms      see note  ~1, hidden inside stdio (64 KiB buffer)
+    write() one byte at a time            14.91 ms          4096  one per byte
+    write() in 64 KiB blocks               0.34 ms             1  one per 64 KiB
+  ----------------------------------------------------------------------------
+    The bytes written are identical in all four cases. Only the
+    number of trips into the kernel changed. That is what the
+    kernel I/O subsystem's buffering is for.
+    Check the real counts yourself:  strace -c -e trace=write ./iolab
+
+  File metadata: what the directory entry and inode hold
+  ----------------------------------------------------------------------------
+    the file we wrote      iolab-out.dat   
+        inode number        1441947
+        hard links          2
+        size (st_size)      4096 bytes
+        allocated           8 blocks of 512 B = 4096 bytes
+        block size hint     4096 bytes
+
+    A SPARSE FILE: seek to 8 MiB - 1, write a single byte
+
+    sparse file            iolab-sparse.dat
+        inode number        1442072
+        hard links          1
+        size (st_size)      8388608 bytes
+        allocated           8 blocks of 512 B = 4096 bytes
+        block size hint     4096 bytes
+
+        ^ it reports 8 MiB of size while occupying almost no
+          blocks. The gap is a HOLE: logical blocks with no
+          physical block behind them. Reading a hole returns
+          zeroes without any disk access at all.
+
+    HARD LINK against SYMBOLIC LINK
+
+    original               iolab-out.dat   
+        inode number        1441947
+        hard links          2
+        size (st_size)      4096 bytes
+        allocated           8 blocks of 512 B = 4096 bytes
+        block size hint     4096 bytes
+
+    hard link              iolab-hard.lnk  
+        inode number        1441947
+        hard links          2
+        size (st_size)      4096 bytes
+        allocated           8 blocks of 512 B = 4096 bytes
+        block size hint     4096 bytes
+
+    symbolic link          iolab-sym.lnk   
+        inode number        1442073
+        hard links          1
+        size (st_size)      13 bytes
+        allocated           0 blocks of 512 B = 0 bytes
+        block size hint     4096 bytes
+        symlink target      iolab-out.dat
+
+        ^ the hard link has the SAME inode number as the original
+          and the link count of both went up to 2: one file, two
+          names. The symbolic link has its OWN inode, a size of
+          just the length of the path it holds, and it would
+          dangle if the original were deleted.
+
+========================================================================
+  Part 3 simulates the mapping from logical block to physical
+  block. The sparse file above is that mapping in the real
+  kernel, and the reason a file is not just a run of bytes.
+========================================================================
+
+
+
+PART 2
+
+./disksched requests/ex1-lecture.txt
+========================================================================
+  Disk scheduling: ex1-lecture.txt
+========================================================================
+  cylinders        : 0 to 199
+  head starts at   : 53
+  current direction: assumed downward (no 'previous' given)
+  request queue    : 98 183 37 122 14 124 65 67
+========================================================================
+
+  Total head movement, in cylinders, for BOTH starting directions
+  ----------------------------------------------------------------------
+              head moving    head moving   
+  algorithm     DOWN first       UP first   note
+  ----------------------------------------------------------------------
+  FCFS                640            640   direction makes no difference
+  SSTF                236            236   direction makes no difference
+  SCAN                236            331   
+  LOOK                208            299   
+  C-SCAN              386            382   the wrap-around dominates
+  C-LOOK              326            322   the wrap-around dominates
+  ----------------------------------------------------------------------
+  FCFS and SSTF never reverse on purpose, so direction cannot
+  change their answer. The other four are all defined in terms
+  of a direction, so it changes everything.
+
+  The service order, for the direction above (downward)
+  ----------------------------------------------------------------------
+  FCFS     total  640
+           53 -> 98 -> 183 -> 37 -> 122 -> 14 -> 124 -> 65 -> 67
+  SSTF     total  236
+           53 -> 65 -> 67 -> 37 -> 14 -> 98 -> 122 -> 124 -> 183
+  SCAN     total  236
+           53 -> 37 -> 14 -> 0 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183
+  LOOK     total  208
+           53 -> 37 -> 14 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183
+  C-SCAN   total  386  (187 without the wrap-around seek)
+           53 -> 37 -> 14 -> 0 -> 199 -> 183 -> 124 -> 122 -> 98 -> 67 -> 65
+  C-LOOK   total  326  (157 without the wrap-around seek)
+           53 -> 37 -> 14 -> 183 -> 124 -> 122 -> 98 -> 67 -> 65
+  ----------------------------------------------------------------------
+  C-SCAN and C-LOOK include one seek across the disk that
+  services no request. Textbooks differ on whether to count it,
+  so both figures are shown. The lecture slides quote both.
+========================================================================
+
+./disksched requests/ex2-exercise.txt
+========================================================================
+  Disk scheduling: ex2-exercise.txt
+========================================================================
+  cylinders        : 0 to 199
+  head starts at   : 80
+  previous request : 95
+  current direction: downward, because the previous request was higher
+  request queue    : 145 32 110 18 175 64 150 42
+========================================================================
+
+  Total head movement, in cylinders, for BOTH starting directions
+  ----------------------------------------------------------------------
+              head moving    head moving   
+  algorithm     DOWN first       UP first   note
+  ----------------------------------------------------------------------
+  FCFS                810            810   direction makes no difference
+  SSTF                219            219   direction makes no difference
+  SCAN                255            300   
+  LOOK                219            252   
+  C-SCAN              368            382   the wrap-around dominates
+  C-LOOK              284            298   the wrap-around dominates
+  ----------------------------------------------------------------------
+  FCFS and SSTF never reverse on purpose, so direction cannot
+  change their answer. The other four are all defined in terms
+  of a direction, so it changes everything.
+
+  The service order, for the direction above (downward)
+  ----------------------------------------------------------------------
+  FCFS     total  810
+           80 -> 145 -> 32 -> 110 -> 18 -> 175 -> 64 -> 150 -> 42
+  SSTF     total  219
+           80 -> 64 -> 42 -> 32 -> 18 -> 110 -> 145 -> 150 -> 175
+  SCAN     total  255
+           80 -> 64 -> 42 -> 32 -> 18 -> 0 -> 110 -> 145 -> 150 -> 175
+  LOOK     total  219
+           80 -> 64 -> 42 -> 32 -> 18 -> 110 -> 145 -> 150 -> 175
+  C-SCAN   total  368  (169 without the wrap-around seek)
+           80 -> 64 -> 42 -> 32 -> 18 -> 0 -> 199 -> 175 -> 150 -> 145 -> 110
+  C-LOOK   total  284  (127 without the wrap-around seek)
+           80 -> 64 -> 42 -> 32 -> 18 -> 175 -> 150 -> 145 -> 110
+  ----------------------------------------------------------------------
+  C-SCAN and C-LOOK include one seek across the disk that
+  services no request. Textbooks differ on whether to count it,
+  so both figures are shown. The lecture slides quote both.
+========================================================================
+
+
+
+PROGRAM
+
+./fssim workloads/w1-basic.txt
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w1-basic.txt
+  disk       : 64 blocks of 64 bytes  (4 KiB total)
+  pointer    : 4 bytes, so 16 pointers fit in one block
+========================================================================
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aAAAAAAA AbBBBBBc CCCCCCCC CCCC.... 
+   32: ........ ........ ........ ........ 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+  A            8      1     1           2        2      2      16    16
+  B            5     10     1           2        2      2      10    10
+  C           12     16     1           2        2      2      24    24
+------------------------------------------------------------------------
+  TOTAL       25            3                                  50    50
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 15 data pointers plus one link, so blocks
+0..14 cost 2 accesses, 15..29 cost 3, and so on: one more for
+every 15 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+A                 8      1  2 2 2 2 2 2 2 2
+B                 5      1  2 2 2 2 2
+C                12      1  2 2 2 2 2 2 2 2 2 2 2 2
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 64 bytes, pointer 4 bytes, so 16 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 28  (43.8%)
+  Free                      : 36
+  Largest contiguous run    : 36
+  Free but unusable for one contiguous file of 36 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 36 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 36.
+------------------------------------------------------------------------
+
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w1-basic.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                     3          3        +0
+  files that could NOT be placed                0          0        +0
+  data blocks used                             25         25        +0
+  metadata blocks used                          0          3        +3
+------------------------------------------------------------------------
+  accesses, first block of each file            3          6        +3
+  accesses, middle block                        3          6        +3
+  accesses, last block                          3          6        +3
+  accesses, full sequential read               25         50       +25
+  accesses, random pattern                     25         50       +25
+------------------------------------------------------------------------
+  largest free run left                        39         36        -3
+------------------------------------------------------------------------
+  Your method needs 25 MORE accesses than contiguous for a full
+  sequential read, on the same 25 data blocks. Say what buys
+  that cost.
+========================================================================
+
+
+./fssim workloads/w2-frag.txt
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w2-frag.txt
+  disk       : 64 blocks of 64 bytes  (4 KiB total)
+  pointer    : 4 bytes, so 16 pointers fit in one block
+========================================================================
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aAAAAAAA AAAbBBBB BBBBBBcC CCCCCCCC 
+   32: CBBdDDDD DDDDeEEE EEEEEEED DDD..... 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+  A           10      1     1           2        2      2      20    20
+  F           12     12     1           2        2      2      24    24
+  C           10     23     1           2        2      2      20    20
+  G           12     36     1           2        2      2      24    24
+  E           10     45     1           2        2      2      20    20
+------------------------------------------------------------------------
+  TOTAL       54            5                                 108   108
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 15 data pointers plus one link, so blocks
+0..14 cost 2 accesses, 15..29 cost 3, and so on: one more for
+every 15 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+A                10      1  2 2 2 2 2 2 2 2 2 2
+F                12      1  2 2 2 2 2 2 2 2 2 2 2 2
+C                10      1  2 2 2 2 2 2 2 2 2 2
+G                12      1  2 2 2 2 2 2 2 2 2 2 2 2
+E                10      1  2 2 2 2 2 2 2 2 2 2
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 64 bytes, pointer 4 bytes, so 16 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 59  (92.2%)
+  Free                      : 5
+  Largest contiguous run    : 5
+  Free but unusable for one contiguous file of 5 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 5 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 5.
+------------------------------------------------------------------------
+
+  create G      12 blocks : FAILED, not enough room
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w2-frag.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                     4          5        +1
+  files that could NOT be placed                1          0        -1
+  data blocks used                             42         54       +12
+  metadata blocks used                          0          5        +5
+------------------------------------------------------------------------
+  accesses, first block of each file            4         10        +6
+  accesses, middle block                        4         10        +6
+  accesses, last block                          4         10        +6
+  accesses, full sequential read               42        108       +66
+  accesses, random pattern                     42        108       +66
+------------------------------------------------------------------------
+  largest free run left                        10          5        -5
+------------------------------------------------------------------------
+  Contiguous allocation could not place 1 file(s) that your
+  method placed. That is external fragmentation, and it is the
+  headline result on this workload.
+  The two methods placed DIFFERENT numbers of files (5 against
+  4), so the access totals above count different work and are
+  NOT comparable. Compare accesses per data block instead:
+      contiguous 1.00   yours 2.00   per block, sequential
+========================================================================
+
+
+./fssim workloads/w3-big.txt
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w3-big.txt
+  disk       : 64 blocks of 64 bytes  (4 KiB total)
+  pointer    : 4 bytes, so 16 pointers fit in one block
+========================================================================
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aaAAAAAA AAAAAAAA AAAAAAbb BBBBBBBB 
+   32: BBBBBBBB BBBBcCCC C....... ........ 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+  BIG1        20      2     2           2        2      3      45    45
+  BIG2        20     24     2           2        2      3      45    45
+  SMALL        4     45     1           2        2      2       8     8
+------------------------------------------------------------------------
+  TOTAL       44            5                                  98    98
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 15 data pointers plus one link, so blocks
+0..14 cost 2 accesses, 15..29 cost 3, and so on: one more for
+every 15 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+BIG1             20      2  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 | 3 3 3 3 3
+BIG2             20      2  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 | 3 3 3 3 3
+SMALL             4      1  2 2 2 2
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 64 bytes, pointer 4 bytes, so 16 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 49  (76.6%)
+  Free                      : 15
+  Largest contiguous run    : 15
+  Free but unusable for one contiguous file of 15 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 15 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 15.
+------------------------------------------------------------------------
+
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w3-big.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                     3          3        +0
+  files that could NOT be placed                0          0        +0
+  data blocks used                             44         44        +0
+  metadata blocks used                          0          5        +5
+------------------------------------------------------------------------
+  accesses, first block of each file            3          6        +3
+  accesses, middle block                        3          6        +3
+  accesses, last block                          3          8        +5
+  accesses, full sequential read               44         98       +54
+  accesses, random pattern                     44         98       +54
+------------------------------------------------------------------------
+  largest free run left                        20         15        -5
+------------------------------------------------------------------------
+  Your method needs 54 MORE accesses than contiguous for a full
+  sequential read, on the same 44 data blocks. Say what buys
+  that cost.
+========================================================================
+
+
+./fssim workloads/w4-many.txt
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w4-many.txt
+  disk       : 64 blocks of 64 bytes  (4 KiB total)
+  pointer    : 4 bytes, so 16 pointers fit in one block
+========================================================================
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aAAAbBBB cCCCdDDD eEEEfFFF gGGGhHHH 
+   32: iIIIjJJJ ........ ........ ........ 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+  F1           3      1     1           2        2      2       6     6
+  F2           3      5     1           2        2      2       6     6
+  F3           3      9     1           2        2      2       6     6
+  F4           3     13     1           2        2      2       6     6
+  F5           3     17     1           2        2      2       6     6
+  F6           3     21     1           2        2      2       6     6
+  F7           3     25     1           2        2      2       6     6
+  F8           3     29     1           2        2      2       6     6
+  F9           3     33     1           2        2      2       6     6
+  F10          3     37     1           2        2      2       6     6
+------------------------------------------------------------------------
+  TOTAL       30           10                                  60    60
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 15 data pointers plus one link, so blocks
+0..14 cost 2 accesses, 15..29 cost 3, and so on: one more for
+every 15 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+F1                3      1  2 2 2
+F2                3      1  2 2 2
+F3                3      1  2 2 2
+F4                3      1  2 2 2
+F5                3      1  2 2 2
+F6                3      1  2 2 2
+F7                3      1  2 2 2
+F8                3      1  2 2 2
+F9                3      1  2 2 2
+F10               3      1  2 2 2
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 64 bytes, pointer 4 bytes, so 16 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 40  (62.5%)
+  Free                      : 24
+  Largest contiguous run    : 24
+  Free but unusable for one contiguous file of 24 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 24 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 24.
+------------------------------------------------------------------------
+
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w4-many.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                    10         10        +0
+  files that could NOT be placed                0          0        +0
+  data blocks used                             30         30        +0
+  metadata blocks used                          0         10       +10
+------------------------------------------------------------------------
+  accesses, first block of each file           10         20       +10
+  accesses, middle block                       10         20       +10
+  accesses, last block                         10         20       +10
+  accesses, full sequential read               30         60       +30
+  accesses, random pattern                     30         60       +30
+------------------------------------------------------------------------
+  largest free run left                        34         24       -10
+------------------------------------------------------------------------
+  Your method needs 30 MORE accesses than contiguous for a full
+  sequential read, on the same 30 data blocks. Say what buys
+  that cost.
+========================================================================
+
+
+./fssim workloads/w5-edge.txt
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w5-edge.txt
+  disk       : 64 blocks of 64 bytes  (4 KiB total)
+  pointer    : 4 bytes, so 16 pointers fit in one block
+========================================================================
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aAbBcCdd DDDDDDDD DDDDDDDD eeEEEEEE 
+   32: EEEEEEEE EEEB.... ........ ........ 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+  X            1      1     1           2        2      2       2     2
+  TINY         2      3     1           2        2      2       4     4
+  Z            1      5     1           2        2      2       2     2
+  EXACT16     16      8     2           2        2      3      33    34
+  OVER17      17     26     2           2        2      3      36    35
+------------------------------------------------------------------------
+  TOTAL       37            7                                  77    77
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 15 data pointers plus one link, so blocks
+0..14 cost 2 accesses, 15..29 cost 3, and so on: one more for
+every 15 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+X                 1      1  2
+TINY              2      1  2 2
+Z                 1      1  2
+EXACT16          16      2  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 | 3
+OVER17           17      2  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 | 3 3
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 64 bytes, pointer 4 bytes, so 16 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 44  (68.8%)
+  Free                      : 20
+  Largest contiguous run    : 20
+  Free but unusable for one contiguous file of 20 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 20 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 20.
+------------------------------------------------------------------------
+
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w5-edge.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                     5          5        +0
+  files that could NOT be placed                0          0        +0
+  data blocks used                             37         37        +0
+  metadata blocks used                          0          7        +7
+------------------------------------------------------------------------
+  accesses, first block of each file            5         10        +5
+  accesses, middle block                        5         10        +5
+  accesses, last block                          5         12        +7
+  accesses, full sequential read               37         77       +40
+  accesses, random pattern                     37         77       +40
+------------------------------------------------------------------------
+  largest free run left                        26         20        -6
+------------------------------------------------------------------------
+  Your method needs 40 MORE accesses than contiguous for a full
+  sequential read, on the same 37 data blocks. Say what buys
+  that cost.
+========================================================================
+
+
+./fssim workloads/w1-basic.txt -s 4096 -p 4
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w1-basic.txt
+  disk       : 64 blocks of 4096 bytes  (256 KiB total)
+  pointer    : 4 bytes, so 1024 pointers fit in one block
+========================================================================
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aAAAAAAA AbBBBBBc CCCCCCCC CCCC.... 
+   32: ........ ........ ........ ........ 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+  A            8      1     1           2        2      2      16    16
+  B            5     10     1           2        2      2      10    10
+  C           12     16     1           2        2      2      24    24
+------------------------------------------------------------------------
+  TOTAL       25            3                                  50    50
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 1023 data pointers plus one link, so blocks
+0..1022 cost 2 accesses, 1023..2045 cost 3, and so on: one more for
+every 1023 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+A                 8      1  2 2 2 2 2 2 2 2
+B                 5      1  2 2 2 2 2
+C                12      1  2 2 2 2 2 2 2 2 2 2 2 2
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 4096 bytes, pointer 4 bytes, so 1024 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 28  (43.8%)
+  Free                      : 36
+  Largest contiguous run    : 36
+  Free but unusable for one contiguous file of 36 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 36 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 36.
+------------------------------------------------------------------------
+
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w1-basic.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                     3          3        +0
+  files that could NOT be placed                0          0        +0
+  data blocks used                             25         25        +0
+  metadata blocks used                          0          3        +3
+------------------------------------------------------------------------
+  accesses, first block of each file            3          6        +3
+  accesses, middle block                        3          6        +3
+  accesses, last block                          3          6        +3
+  accesses, full sequential read               25         50       +25
+  accesses, random pattern                     25         50       +25
+------------------------------------------------------------------------
+  largest free run left                        39         36        -3
+------------------------------------------------------------------------
+  Your method needs 25 MORE accesses than contiguous for a full
+  sequential read, on the same 25 data blocks. Say what buys
+  that cost.
+========================================================================
+
+
+./fssim workloads/w1-basic.txt -v
+========================================================================
+  Indexed Allocation with Linked Index Blocks
+  workload   : workloads/w1-basic.txt
+  disk       : 64 blocks of 64 bytes  (4 KiB total)
+  pointer    : 4 bytes, so 16 pointers fit in one block
+========================================================================
+
+Running the workload
+
+  create A, 8 blocks
+      metadata   : 0
+      data blocks: 1 2 3 4 5 6 7 8
+  create B, 5 blocks
+      metadata   : 9
+      data blocks: 10 11 12 13 14
+  create C, 12 blocks
+      metadata   : 15
+      data blocks: 16 17 18 19 20 21 22 23 24 25 26 27
+
+Disk map   '.' free   A-P a file's data   a-p that file's metadata   '#' FAT
+
+    0: aAAAAAAA AbBBBBBc CCCCCCCC CCCC.... 
+   32: ........ ........ ........ ........ 
+
+------------------------------------------------------------------------
+  file      blks  start  meta  disk accesses: first / middle / last   seq   rnd
+------------------------------------------------------------------------
+        read block   0 (metadata)
+        read block   1 (data)
+        read block   0 (metadata)
+        read block   5 (data)
+        read block   0 (metadata)
+        read block   8 (data)
+        read block   0 (metadata)
+        read block   1 (data)
+        read block   0 (metadata)
+        read block   2 (data)
+        read block   0 (metadata)
+        read block   3 (data)
+        read block   0 (metadata)
+        read block   4 (data)
+        read block   0 (metadata)
+        read block   5 (data)
+        read block   0 (metadata)
+        read block   6 (data)
+        read block   0 (metadata)
+        read block   7 (data)
+        read block   0 (metadata)
+        read block   8 (data)
+        read block   0 (metadata)
+        read block   5 (data)
+        read block   0 (metadata)
+        read block   7 (data)
+        read block   0 (metadata)
+        read block   7 (data)
+        read block   0 (metadata)
+        read block   2 (data)
+        read block   0 (metadata)
+        read block   7 (data)
+        read block   0 (metadata)
+        read block   2 (data)
+        read block   0 (metadata)
+        read block   8 (data)
+        read block   0 (metadata)
+        read block   1 (data)
+  A            8      1     1           2        2      2      16    16
+        read block   9 (metadata)
+        read block  10 (data)
+        read block   9 (metadata)
+        read block  12 (data)
+        read block   9 (metadata)
+        read block  14 (data)
+        read block   9 (metadata)
+        read block  10 (data)
+        read block   9 (metadata)
+        read block  11 (data)
+        read block   9 (metadata)
+        read block  12 (data)
+        read block   9 (metadata)
+        read block  13 (data)
+        read block   9 (metadata)
+        read block  14 (data)
+        read block   9 (metadata)
+        read block  11 (data)
+        read block   9 (metadata)
+        read block  10 (data)
+        read block   9 (metadata)
+        read block  14 (data)
+        read block   9 (metadata)
+        read block  12 (data)
+        read block   9 (metadata)
+        read block  14 (data)
+  B            5     10     1           2        2      2      10    10
+        read block  15 (metadata)
+        read block  16 (data)
+        read block  15 (metadata)
+        read block  22 (data)
+        read block  15 (metadata)
+        read block  27 (data)
+        read block  15 (metadata)
+        read block  16 (data)
+        read block  15 (metadata)
+        read block  17 (data)
+        read block  15 (metadata)
+        read block  18 (data)
+        read block  15 (metadata)
+        read block  19 (data)
+        read block  15 (metadata)
+        read block  20 (data)
+        read block  15 (metadata)
+        read block  21 (data)
+        read block  15 (metadata)
+        read block  22 (data)
+        read block  15 (metadata)
+        read block  23 (data)
+        read block  15 (metadata)
+        read block  24 (data)
+        read block  15 (metadata)
+        read block  25 (data)
+        read block  15 (metadata)
+        read block  26 (data)
+        read block  15 (metadata)
+        read block  27 (data)
+        read block  15 (metadata)
+        read block  20 (data)
+        read block  15 (metadata)
+        read block  26 (data)
+        read block  15 (metadata)
+        read block  22 (data)
+        read block  15 (metadata)
+        read block  25 (data)
+        read block  15 (metadata)
+        read block  22 (data)
+        read block  15 (metadata)
+        read block  25 (data)
+        read block  15 (metadata)
+        read block  23 (data)
+        read block  15 (metadata)
+        read block  16 (data)
+        read block  15 (metadata)
+        read block  19 (data)
+        read block  15 (metadata)
+        read block  21 (data)
+        read block  15 (metadata)
+        read block  17 (data)
+        read block  15 (metadata)
+        read block  23 (data)
+  C           12     16     1           2        2      2      24    24
+------------------------------------------------------------------------
+  TOTAL       25            3                                  50    50
+------------------------------------------------------------------------
+
+========================================================================
+A STAIRCASE, NOT A FLAT COST
+========================================================================
+Each index block holds 15 data pointers plus one link, so blocks
+0..14 cost 2 accesses, 15..29 cost 3, and so on: one more for
+every 15 logical blocks.
+------------------------------------------------------------------------
+file         blocks  index  accesses by logical block
+------------------------------------------------------------------------
+A                 8      1  2 2 2 2 2 2 2 2
+B                 5      1  2 2 2 2 2
+C                12      1  2 2 2 2 2 2 2 2 2 2 2 2
+------------------------------------------------------------------------
+The '|' marks where one index block ends and the next begins,
+which is exactly where the cost steps up. Topic 3 is flat at 2
+but cannot address past 16 blocks; topic 5 is flat at 3 and can
+address far more. This method trades a growing cost for an
+unbounded size.
+
+------------------------------------------------------------------------
+  ADDRESSING LIMIT OF THIS METHOD
+------------------------------------------------------------------------
+  Block size 64 bytes, pointer 4 bytes, so 16 pointers per block.
+  Maximum file size         : no limit from the method itself
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+  SPACE
+------------------------------------------------------------------------
+  Blocks on the disk        : 64
+  In use                    : 28  (43.8%)
+  Free                      : 36
+  Largest contiguous run    : 36
+  Free but unusable for one contiguous file of 36 blocks: 0
+
+  A method that needs contiguous space can only use the largest
+  run, so 0 of those 36 free blocks are external fragmentation
+  as far as contiguous allocation is concerned. A method that can
+  scatter its blocks can use all 36.
+------------------------------------------------------------------------
+
+========================================================================
+  Indexed Allocation with Linked Index Blocks  vs  CONTIGUOUS ALLOCATION
+  workloads/w1-basic.txt
+========================================================================
+                                       contiguous      yours      diff
+------------------------------------------------------------------------
+  files successfully placed                     3          3        +0
+  files that could NOT be placed                0          0        +0
+  data blocks used                             25         25        +0
+  metadata blocks used                          0          3        +3
+------------------------------------------------------------------------
+  accesses, first block of each file            3          6        +3
+  accesses, middle block                        3          6        +3
+  accesses, last block                          3          6        +3
+  accesses, full sequential read               25         50       +25
+  accesses, random pattern                     25         50       +25
+------------------------------------------------------------------------
+  largest free run left                        39         36        -3
+------------------------------------------------------------------------
+  Your method needs 25 MORE accesses than contiguous for a full
+  sequential read, on the same 25 data blocks. Say what buys
+  that cost.
+========================================================================

@@ -1,3 +1,37 @@
+./fssim workloads/w1-basic.txt
+workload,method,file,data_blocks,meta_blocks,acc_first,acc_middle,acc_last,acc_sequential,acc_random
+workloads/w1-basic.txt,Indexed Allocation with Linked Index Blocks,A,8,1,2,2,2,16,16
+workloads/w1-basic.txt,Indexed Allocation with Linked Index Blocks,B,5,1,2,2,2,10,10
+workloads/w1-basic.txt,Indexed Allocation with Linked Index Blocks,C,12,1,2,2,2,24,24
+
+./fssim workloads/w2-frag.txt
+workload,method,file,data_blocks,meta_blocks,acc_first,acc_middle,acc_last,acc_sequential,acc_random
+workloads/w2-frag.txt,Indexed Allocation with Linked Index Blocks,A,10,1,2,2,2,20,20
+workloads/w2-frag.txt,Indexed Allocation with Linked Index Blocks,F,12,1,2,2,2,24,24
+workloads/w2-frag.txt,Indexed Allocation with Linked Index Blocks,C,10,1,2,2,2,20,20
+workloads/w2-frag.txt,Indexed Allocation with Linked Index Blocks,G,12,1,2,2,2,24,24
+workloads/w2-frag.txt,Indexed Allocation with Linked Index Blocks,E,10,1,2,2,2,20,20
+
+./fssim workloads/w3-big.txt
+workload,method,file,data_blocks,meta_blocks,acc_first,acc_middle,acc_last,acc_sequential,acc_random
+workloads/w3-big.txt,Indexed Allocation with Linked Index Blocks,BIG1,20,2,2,2,3,45,45
+workloads/w3-big.txt,Indexed Allocation with Linked Index Blocks,BIG2,20,2,2,2,3,45,45
+workloads/w3-big.txt,Indexed Allocation with Linked Index Blocks,SMALL,4,1,2,2,2,8,8
+
+./fssim workloads/w4-many.txt
+workload,method,file,data_blocks,meta_blocks,acc_first,acc_middle,acc_last,acc_sequential,acc_random
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F1,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F2,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F3,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F4,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F5,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F6,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F7,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F8,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F9,3,1,2,2,2,6,6
+workloads/w4-many.txt,Indexed Allocation with Linked Index Blocks,F10,3,1,2,2,2,6,6
+
+./fssim workloads/w5-edge.txt
 workload,method,file,data_blocks,meta_blocks,acc_first,acc_middle,acc_last,acc_sequential,acc_random
 workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,X,1,1,2,2,2,2,2
 workloads/w5-edge.txt,Indexed Allocation with Linked Index Blocks,TINY,2,1,2,2,2,4,4
