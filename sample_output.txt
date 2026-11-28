@@ -871,7 +871,7 @@ C                12      1  2 2 2 2 2 2 2 2 2 2 2 2
 ------------------------------------------------------------------------
 The '|' marks where one index block ends and the next begins,
 which is exactly where the cost steps up. Topic 3 is flat at 2
-but cannot address past 16 blocks; topic 5 is flat at 3 and can
+but cannot address past 1024 blocks; topic 5 is flat at 3 and can
 address far more. This method trades a growing cost for an
 unbounded size.
 
