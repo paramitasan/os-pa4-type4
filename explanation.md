@@ -149,8 +149,6 @@ Each file gets a chain of index blocks. Each block holds `block_size / ptr_size`
 
 - `fs_map(logical)`: when mapping a `logical` block in `fs_map()`, the program calculates which index block in the chain holds the pointer (`which_index = logical / per`). Because index block *k* can only be located by reading the link pointer stored inside index block *k-1*, the simulator reads every index block from `0` up to `which_index` before reading the target data block. Cost: **`(logical / per) + 2` disk accesses**.
 
-**Manual check (w1-basic, file A).** Its first index block is physical block 0 and holds 15 data pointers. For logical block 0, read index block 0 and then data block 1. For logical block 7, read the same index block and then data block 8. Both take 2 reads, matching the verbose trace.
-
 **Lecture slide:**
 * [FS] p.45 (the index-table figure: the *i*-th entry points to the *i*-th logical block, unused slots are -1)
 * [FS] p.49-50 (*Performance: Contiguous vs Linked vs Indexed*) is the slide for the cost trade-off: indexed needs index-block reads before the data block.
@@ -223,3 +221,81 @@ Of topic 3 (single index block), topic 4 (this method) and topic 5 (two-level in
 Ours costs 2 accesses (like topic 3, and cheaper than topic 5's 3) for logical blocks 0-1022 (about 4 MiB at 4 KiB blocks), equals topic 5 at 3 up to block 2045 (about 8 MiB), and is worse from block 2046 on, with the gap growing. Small files benefit from the short chain, but reads near the end of a large file must traverse every preceding index block.
  
 **We would ship topic 5 (two-level)**: every lookup takes 3 accesses for files up to 4 GiB, giving a predictable read count. For a real design we would go one step further and use the UFS combined scheme ([FS] p.47-48: 12 direct pointers for small files, then single, double and triple indirect), where the first 12 data blocks can be reached directly from the inode and larger files use up to three levels of indirection.
+
+### Manual verification: `w1-basic.txt`
+
+![Manual self-check for logical blocks 0 and 7 of file A](img/manual-self-check.jpg)
+
+#### 1. Preparation
+
+**Rules used**
+
+- The default disk has 64 blocks of 64 bytes each. With 4-byte pointers, each index block has `ppb = 64 / 4 = 16` slots.
+- The last slot links to the next index block, leaving `per = ppb − 1 = 15` slots for data addresses.
+- Each lookup starts at the first index block. Count one read for each index block visited and one for the requested data block.
+
+The first command in `w1-basic.txt`, `create A 8`, creates file A with logical blocks 0–7. We trace the first and last blocks by hand.
+
+#### 2. Allocation
+
+For A, `fs_allocate()` needs `index_count = ceil(8 / 15) = 1` index block. A is created first on an empty disk. The allocator reserves physical block 0 for its index, then physical blocks 1–8 for its data. A occupies nine physical blocks in total.
+
+| Logical block in A | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Physical data block | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+
+In the index layout, slots 0–7 hold these eight addresses. Slots 8–14 are unused. Slot 15 is reserved for the link, and A has no next index block.
+
+#### 3. Mapping
+
+For a logical block `logical`, integer division gives its index block’s zero-based position in the chain, `which_index = logical / per`. The remainder, `logical % per`, gives the pointer offset in slots within that index block. In the simulator, `f->index_chain[which_index]` holds the physical index block address, and `f->data[logical]` holds the physical data block address.
+
+| Logical block in A | Chain position (integer division) | Pointer offset (slot) | Physical index block | Physical data block |
+| --- | --- | --- | --- | --- |
+| 0 | `0 / 15 = 0` | `0 % 15 = 0` | 0 | 1 |
+| 7 | `7 / 15 = 0` | `7 % 15 = 7` | 0 | 8 |
+
+#### 4. Disk Access Counting
+
+`fs_map()` reads the index blocks from chain position 0 through `which_index`, then reads the requested data block. The total is `floor(logical / per) + 2`: one read for the first index block, one for the data block, and one more for each additional index block traversed.
+
+| Reaching logical block 0 of A under my method |
+| --- |
+| Read physical block **0** because A’s first index block contains the pointer in slot 0.<br>Read physical block **1** because slot 0 points to the requested data there.<br>**Total: 2 accesses** (1 metadata read + 1 data read), matching `floor(0 / 15) + 2 = 2`. |
+
+| Reaching logical block 7 of A under my method |
+| --- |
+| Read physical block **0** because slot 7 is still in A’s first index block.<br>Read physical block **8** because slot 7 gives its address directly. We can skip the seven preceding data blocks.<br>**Total: 2 accesses** (1 metadata read + 1 data read), matching `floor(7 / 15) + 2 = 2`. |
+
+#### 5. Verification
+
+The saved output for `./fssim workloads/w1-basic.txt -v` shows A’s allocation:
+
+```text
+  create A, 8 blocks
+      metadata   : 0
+      data blocks: 1 2 3 4 5 6 7 8
+```
+
+The first-block lookup in the verbose trace reads:
+
+```text
+        read block   0 (metadata)
+        read block   1 (data)
+```
+
+The last-block lookup reads:
+
+```text
+        read block   0 (metadata)
+        read block   8 (data)
+```
+
+| Logical block in A | Manual accesses | Program accesses | Result |
+| --- | --- | --- | --- |
+| 0 (first) | 2 | 2 | Match |
+| 7 (last) | 2 | 2 | Match |
+
+#### 6. Conclusion
+
+Both lookups reach the predicted physical data block in two reads. A’s eight addresses fit in one index block. The other files in `w1-basic.txt` also fit within the 15-pointer capacity, so this workload shows only the first step of the access-cost staircase.
