@@ -180,7 +180,7 @@ void print_topic_extra(Disk *d)
     rule('-');
     puts("The '|' marks where one index block ends and the next begins,");
     puts("which is exactly where the cost steps up. Topic 3 is flat at 2");
-    puts("but cannot address past 16 blocks; topic 5 is flat at 3 and can");
+    printf("but cannot address past %d blocks; topic 5 is flat at 3 and can\n", d->block_size / d->ptr_size);    
     puts("address far more. This method trades a growing cost for an");
     puts("unbounded size.\n");
 
